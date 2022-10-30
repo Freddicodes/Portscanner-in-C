@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv) {
     // help menu
-    if (argc < 4 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "--help") == 0) {
+    if (argc < 4 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
         printf("Please provide the following arguments: server_ip  start_port  end_port\n");
         exit(1);
     }
