@@ -5,4 +5,17 @@
 #ifndef PORTSCANNER_IN_C_SCANNER_H
 #define PORTSCANNER_IN_C_SCANNER_H
 
+
+#define IP_LENGTH 16
+
+#define SUCCESS 1
+#define ERROR 0
+
+#define RED "\033[0;31m"
+#define GRN "\033[0;32m"
+#define RST "\e[0m"
+
+int start(char ** argv);
+
+
 #endif

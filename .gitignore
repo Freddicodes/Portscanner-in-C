@@ -1,5 +1,8 @@
 /.vscode/
 /.idea/
 /cmake-*/
-CMakeList.txt
+CMakeLists.txt
 **/*.dSYM/
+*.h.gch
+*.o
+scanner

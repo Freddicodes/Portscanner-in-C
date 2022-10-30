@@ -5,63 +5,87 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <errno.h>
-#include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <sys/fcntl.h>
 
-#define IP_LENGTH 16
-#define PORT_LENGTH 6
+#include "scanner.h"
 
-int main(int argc, char **argv) {
-    if (argc < 4) {
-        printf("Please provide the following arguments: server_ip, start_port, end_port\n");
-        exit(1);
-    }
+
+int start(char **argv) {
 
     char ip[IP_LENGTH] = {0};
+    struct sockaddr_in sa;
+    int sock;
+    fd_set fdset;
+    struct timeval tv;
+
+    // copy the ip address
     strncpy(ip, argv[1], IP_LENGTH);
 
+    // turning arguments to port number
     long first_port = strtol(argv[2], NULL, 10);
     if (first_port < 0 || errno == EINVAL || errno == ERANGE) {
-        printf("Problem resolving port number\n");
+        printf("Problem resolving start port\n");
     }
 
     long last_port = strtol(argv[3], NULL, 10);
     if (last_port < first_port || errno == EINVAL || errno == ERANGE) {
-        printf("Problem resolving port number\n");
+        printf("Problem resolving end port\n");
     }
 
-    struct sockaddr_in sa;
-    int sock, err;
-    sock = err = -1;
-
-    strncpy((char *) &sa, "", sizeof sa);
+    // set address family and resolve ip address
     sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = inet_addr(ip);
+    if (inet_pton(AF_INET, argv[1], &sa.sin_addr.s_addr) <= 0) {
+        printf("\nInvalid address/ Address not supported \n");
+        return -1;
+    }
 
+    // start iterating ports
     for (; first_port <= last_port; ++first_port) {
-        printf("scanning port %li\n", first_port);
-
         sa.sin_port = htons(first_port);
-        sock = socket(AF_INET, SOCK_STREAM, 0);
 
-        if (socket < 0) {
+        if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
             printf("Problem with port\n");
-            exit(1);
+            return ERROR;
         }
 
-        err = connect(sock, (struct sockaddr*)&sa, sizeof sa);
+        // set socket to no blocking
+        fcntl(sock, F_SETFL, O_NONBLOCK);
 
-        if (err < 0) {
-            fflush(stdout);
-        } else {
-            printf("Port %li is open\n", first_port);
+        // try connection
+        connect(sock, (struct sockaddr *) &sa, sizeof sa);
+
+        FD_ZERO(&fdset);
+        FD_SET(sock, &fdset);
+        tv.tv_sec = 10;             /* 10 second timeout */
+        tv.tv_usec = 0;
+
+        if (select(sock + 1, NULL, &fdset, NULL, &tv) == 1)
+        {
+            int so_error;
+            socklen_t len = sizeof so_error;
+
+            getsockopt(sock, SOL_SOCKET, SO_ERROR, &so_error, &len);
+
+            if (so_error == 0) {
+                printf("%s:%ld is", argv[1], first_port);
+                printf(GRN);
+                printf(" open\n");
+                printf(RST);
+            } else {
+                printf("%s:%ld is ", argv[1], first_port);
+                printf(RED);
+                printf("closed\n");
+                printf(RST);
+            }
         }
         close(sock);
     }
     fflush(stdout);
-    return 0;
+
+    return SUCCESS;
 }
