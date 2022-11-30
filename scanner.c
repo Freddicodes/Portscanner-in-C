@@ -14,6 +14,7 @@
 
 #include "scanner.h"
 
+int open_ports[65535] = {0};
 
 int start(char **argv) {
 
@@ -30,18 +31,20 @@ int start(char **argv) {
     long first_port = strtol(argv[2], NULL, 10);
     if (first_port < 0 || errno == EINVAL || errno == ERANGE) {
         printf("Problem resolving start port\n");
+        return -1;
     }
 
     long last_port = strtol(argv[3], NULL, 10);
     if (last_port < first_port || errno == EINVAL || errno == ERANGE) {
         printf("Problem resolving end port\n");
+        return ERROR;
     }
 
     // set address family and resolve ip address
     sa.sin_family = AF_INET;
     if (inet_pton(AF_INET, argv[1], &sa.sin_addr.s_addr) <= 0) {
         printf("\nInvalid address/ Address not supported \n");
-        return -1;
+        return ERROR;
     }
 
     // start iterating ports
@@ -72,12 +75,13 @@ int start(char **argv) {
             getsockopt(sock, SOL_SOCKET, SO_ERROR, &so_error, &len);
 
             if (so_error == 0) {
-                printf("%s:%ld is", argv[1], first_port);
+                printf("%s:%ld\tis", argv[1], first_port);
+                open_ports[first_port] = 1;
                 printf(GRN);
                 printf(" open\n");
                 printf(RST);
             } else {
-                printf("%s:%ld is ", argv[1], first_port);
+                printf("%s:%ld\tis ", argv[1], first_port);
                 printf(RED);
                 printf("closed\n");
                 printf(RST);

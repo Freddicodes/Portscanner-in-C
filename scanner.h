@@ -9,13 +9,16 @@
 #define IP_LENGTH 16
 
 #define SUCCESS 1
-#define ERROR 0
+#define ERROR -1
 
 #define RED "\033[0;31m"
 #define GRN "\033[0;32m"
-#define RST "\e[0m"
+#define RST "\033[0m"
+
+extern int open_ports[];
 
 int start(char ** argv);
+
 
 
 #endif

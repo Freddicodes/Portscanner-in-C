@@ -23,5 +23,14 @@ int main(int argc, char **argv) {
         printf("An error occurred\n");
     }
 
+    printf("All open ports:");
+    printf(GRN);
+    for (int i = 0; i < 65535 - 1 ; i++)
+    {
+        open_ports[i] == 1 ? printf("%i, ", i) : 1;
+    }
+    open_ports[65535 - 1] == 1 ? printf("%i, ", 65534) : 1;
+    printf(RST);
+    
     return 0;
 }

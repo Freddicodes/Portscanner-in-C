@@ -6,3 +6,4 @@ CMakeLists.txt
 *.h.gch
 *.o
 scanner
+.DS_Store
