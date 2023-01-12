@@ -49,6 +49,7 @@ int start(char **argv) {
 
     // start iterating ports
     for (; first_port <= last_port; ++first_port) {
+        int supressed;
         sa.sin_port = htons(first_port);
 
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -60,7 +61,7 @@ int start(char **argv) {
         fcntl(sock, F_SETFL, O_NONBLOCK);
 
         // try connection
-        connect(sock, (struct sockaddr *) &sa, sizeof sa);
+        supressed = connect(sock, (struct sockaddr *) &sa, sizeof sa);
 
         FD_ZERO(&fdset);
         FD_SET(sock, &fdset);
